@@ -2,7 +2,6 @@
 
 A modern web application for exploring and discovering movies, built with Next.js 14, React, TypeScript, and Tailwind CSS.
 
-![Movie Explorer Screenshot](public/movie-explorer-screenshot.jpg)
 
 ## Features
 
