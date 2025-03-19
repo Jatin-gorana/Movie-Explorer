@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import type { DefaultSession } from "next-auth";
 
 // Extend the built-in NextAuth types
 declare module "next-auth" {
@@ -8,7 +8,7 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-    };
+    } & DefaultSession["user"];
   }
 
   interface User {

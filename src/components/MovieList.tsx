@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Movie, tmdbService } from '@/services/tmdb';
 import MovieCard from '@/components/MovieCard';
-import MovieCardSkeleton from '@/components/MovieCardSkeleton';
 import { useSearchParams } from 'next/navigation';
 
 interface MovieListProps {
