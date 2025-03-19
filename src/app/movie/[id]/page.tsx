@@ -1,12 +1,7 @@
-import { Suspense } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { tmdbService, MovieDetails } from '@/services/tmdb';
-import Navigation from '@/components/Navigation';
-import MovieDetailClient from '@/components/MovieDetailClient';
+
 import { notFound } from 'next/navigation';
-import ProtectedContent from '@/components/ProtectedContent';
 import MoviePageWrapper from '@/components/MoviePageWrapper';
+import { tmdbService } from '@/services/tmdb';
 
 interface MoviePageProps {
   params: {

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { MovieDetails, tmdbService } from '@/services/tmdb';
 import { useFavorites } from '@/context/FavoritesContext';
-import Link from 'next/link';
 
 interface MovieDetailClientProps {
   movie: MovieDetails;

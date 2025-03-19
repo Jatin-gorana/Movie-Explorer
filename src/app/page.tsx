@@ -1,8 +1,3 @@
-import { Suspense } from 'react';
-import MovieList from '@/components/MovieList';
-import MovieCardSkeleton from '@/components/MovieCardSkeleton';
-import Navigation from '@/components/Navigation';
-import SearchBar from '@/components/SearchBar';
 import { tmdbService } from '@/services/tmdb';
 import HomePageWrapper from '@/components/HomePageWrapper';
 
