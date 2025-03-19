@@ -5,7 +5,7 @@ import { compare } from "bcryptjs";
 
 // In a real app, this would be a database
 // For now, we'll use localStorage simulation in Next.js server
-let userStore = global as unknown as {
+const userStore = global as unknown as {
   users?: Array<{
     id: string;
     name: string;

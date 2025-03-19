@@ -39,7 +39,7 @@ export default function FavoritesPage() {
           ) : (
             <div className="text-center py-10">
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                You haven't added any movies to your favorites yet.
+                You haven&apos;t added any movies to your favorites yet.
               </p>
               <Link
                 href="/"

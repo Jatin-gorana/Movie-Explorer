@@ -116,7 +116,7 @@ export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
             
             {movie.tagline && (
               <p className="text-lg italic text-gray-600 dark:text-gray-400 mb-4">
-                "{movie.tagline}"
+                &ldquo;{movie.tagline}&rdquo;
               </p>
             )}
             

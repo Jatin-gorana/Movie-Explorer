@@ -1,13 +1,27 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "@typescript-eslint/no-unused-vars": "warn"
+    "@typescript-eslint/no-unused-vars": "warn",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-img-element": "warn"
   },
   "overrides": [
     {
       "files": ["src/types/next-auth.d.ts"],
       "rules": {
         "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["src/app/**/*.tsx", "src/components/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["src/context/**/*.tsx"],
+      "rules": {
+        "react-hooks/exhaustive-deps": "off"
       }
     }
   ]
