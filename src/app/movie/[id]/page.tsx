@@ -1,4 +1,3 @@
-
 import { notFound } from 'next/navigation';
 import MoviePageWrapper from '@/components/MoviePageWrapper';
 import { tmdbService } from '@/services/tmdb';
@@ -25,7 +24,8 @@ export async function generateMetadata({ params }: MoviePageProps) {
       title: `${movie.title} (${new Date(movie.release_date).getFullYear()}) - Movie Explorer`,
       description: movie.overview?.substring(0, 160) || 'No description available.',
     };
-  } catch (error) {
+  } catch (_) {
+    // Ignore the error and return default metadata
     return {
       title: 'Movie Details - Movie Explorer',
       description: 'View detailed information about movies.',

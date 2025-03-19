@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Movie, tmdbService } from '@/services/tmdb';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 export default function SearchBar() {
   const router = useRouter();
@@ -129,9 +130,11 @@ export default function SearchBar() {
                   onClick={() => handleResultClick(movie)}
                 >
                   <div className="w-12 h-18 relative mr-3">
-                    <img
+                    <Image
                       src={tmdbService.getMoviePosterUrl(movie.poster_path, 'w92')}
                       alt={movie.title}
+                      width={48}
+                      height={72}
                       className="rounded object-cover"
                     />
                   </div>

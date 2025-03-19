@@ -46,7 +46,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // Clear favorites when user is not authenticated
       setFavorites([]);
     }
-  }, [user, status]);
+  }, [user, status, getFavoritesKey]);
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
@@ -54,7 +54,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     if (storageKey && status === 'authenticated') {
       localStorage.setItem(storageKey, JSON.stringify(favorites));
     }
-  }, [favorites, user, status]);
+  }, [favorites, user, status, getFavoritesKey]);
 
   const addFavorite = (movie: Movie) => {
     // Only add favorites if user is authenticated
