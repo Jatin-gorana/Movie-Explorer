@@ -1,159 +1,127 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Movie, tmdbService } from '@/services/tmdb';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 
 export default function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('query') || '');
-  const [debouncedQuery, setDebouncedQuery] = useState(query);
-  const [results, setResults] = useState<Movie[]>([]);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
+  const [suggestions, setSuggestions] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Debounce the query input
+  // Update the URL when search query changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  // Handle URL updates
-  useEffect(() => {
-    if (debouncedQuery !== (searchParams.get('query') || '')) {
-      const params = new URLSearchParams(searchParams.toString());
-      
-      if (debouncedQuery) {
-        params.set('query', debouncedQuery);
-      } else {
-        params.delete('query');
-      }
-      
-      router.push(`/?${params.toString()}`);
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchQuery) {
+      params.set('query', searchQuery);
+    } else {
+      params.delete('query');
     }
-  }, [debouncedQuery, router, searchParams]);
+    router.push(`?${params.toString()}`);
+  }, [searchQuery, router, searchParams]);
 
-  // Handle click outside to close results
+  // Fetch suggestions when query changes
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowResults(false);
+    if (searchQuery.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Clear previous timeout
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    // Set new timeout
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const response = await tmdbService.searchMovies(searchQuery);
+        setSuggestions(response.results.slice(0, 5));
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setIsLoading(false);
       }
-    };
+    }, 300);
+  }, [searchQuery]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setSuggestions([]);
+      }
+    }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search for results
-  useEffect(() => {
-    const searchMovies = async () => {
-      if (!debouncedQuery.trim()) {
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await tmdbService.searchMovies(debouncedQuery);
-        setResults(response.results.slice(0, 5)); // Show only top 5 results in dropdown
-      } catch (error) {
-        console.error('Error searching movies:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    searchMovies();
-  }, [debouncedQuery]);
-
-  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-    setShowResults(true);
-  };
-
-  const handleResultClick = (movie: Movie) => {
-    setQuery(movie.title);
-    setShowResults(false);
-    
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('query', movie.title);
-    router.push(`/?${params.toString()}`);
-  };
-
   return (
-    <div ref={searchRef} className="relative w-full max-w-2xl mx-auto mb-8">
-      <div className="relative">
-        <input
-          type="text"
-          value={query}
-          onChange={handleQueryChange}
-          onFocus={() => setShowResults(true)}
-          placeholder="Search movies..."
-          className="w-full px-4 py-2 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+    <div className="relative" ref={searchRef}>
+      <input
+        type="text"
+        placeholder="Search for movies..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full px-6 py-4 pl-14 text-lg rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow-lg"
+      />
+      <svg
+        className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          {isLoading ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-          ) : (
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          )}
-        </div>
-      </div>
+      </svg>
 
-      {showResults && (query.trim() || results.length > 0) && (
-        <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg dark:bg-gray-800 max-h-[80vh] overflow-y-auto">
-          {results.length > 0 ? (
-            <div className="grid grid-cols-1 gap-2 p-2">
-              {results.map((movie) => (
-                <div
-                  key={movie.id}
-                  className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                  onClick={() => handleResultClick(movie)}
-                >
-                  <div className="w-12 h-18 relative mr-3">
-                    <Image
-                      src={tmdbService.getMoviePosterUrl(movie.poster_path, 'w92')}
-                      alt={movie.title}
-                      width={48}
-                      height={72}
-                      className="rounded object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      {movie.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(movie.release_date).getFullYear()}
-                    </p>
-                  </div>
-                </div>
+      {/* Suggestions dropdown */}
+      {suggestions.length > 0 && (
+        <div className="absolute w-full mt-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50">
+          {isLoading ? (
+            <div className="p-4 text-center text-gray-400">Loading...</div>
+          ) : (
+            <ul className="py-2">
+              {suggestions.map((movie) => (
+                <li key={movie.id}>
+                  <Link
+                    href={`/movies/${movie.id}`}
+                    className="flex items-center px-4 py-2 hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="relative w-12 h-18 mr-3 flex-shrink-0">
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+                        alt={movie.title}
+                        fill
+                        className="object-cover rounded"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">{movie.title}</div>
+                      <div className="text-sm text-gray-400">
+                        {new Date(movie.release_date).getFullYear()}
+                      </div>
+                    </div>
+                  </Link>
+                </li>
               ))}
-            </div>
-          ) : query.trim() ? (
-            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-              No movies found
-            </div>
-          ) : null}
+            </ul>
+          )}
         </div>
       )}
     </div>

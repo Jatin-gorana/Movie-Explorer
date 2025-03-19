@@ -1,11 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
-import MovieList from '@/components/MovieList';
-import MovieCardSkeleton from '@/components/MovieCardSkeleton';
-import Navigation from '@/components/Navigation';
-import SearchBar from '@/components/SearchBar';
 import { Movie } from '@/services/tmdb';
+import MovieList from './MovieList';
+import SearchBar from './SearchBar';
+import Navigation from './Navigation';
 
 interface HomePageWrapperProps {
   initialMovies: Movie[];
@@ -13,26 +11,16 @@ interface HomePageWrapperProps {
 
 export default function HomePageWrapper({ initialMovies }: HomePageWrapperProps) {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-900">
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold text-center text-gray-900 dark:text-white">
-          Popular Movies
-        </h1>
-        
-        <SearchBar />
-        
-        <Suspense 
-          fallback={
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {Array(10).fill(0).map((_, index) => (
-                <MovieCardSkeleton key={`skeleton-${index}`} />
-              ))}
-            </div>
-          }
-        >
+        <div className="max-w-2xl mx-auto mb-12">
+          <SearchBar />
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold mb-8 text-white">Popular Movies</h2>
           <MovieList initialMovies={initialMovies} />
-        </Suspense>
+        </div>
       </div>
     </div>
   );
