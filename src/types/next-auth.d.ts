@@ -1,3 +1,5 @@
+// Import type definitions from next-auth
+// This comment is important to indicate the purpose of the import
 import type { DefaultSession } from "next-auth";
 
 // Extend the built-in NextAuth types
