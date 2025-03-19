@@ -5,27 +5,55 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 export interface Movie {
   id: number;
   title: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
   overview: string;
-  vote_average: number;
+  poster_path: string;
+  backdrop_path: string;
   release_date: string;
+  vote_average: number;
+  vote_count: number;
+  runtime: number;
+  genres: Array<{
+    id: number;
+    name: string;
+  }>;
 }
 
 export interface MovieDetails extends Movie {
-  genres: { id: number; name: string }[];
-  runtime: number | null;
+  tagline: string;
   status: string;
-  tagline: string | null;
   budget: number;
   revenue: number;
-  vote_count: number;
-  production_companies: {
+  production_companies: Array<{
     id: number;
-    logo_path: string | null;
     name: string;
     origin_country: string;
-  }[];
+  }>;
+}
+
+export interface TVShow {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  genres: Array<{
+    id: number;
+    name: string;
+  }>;
+}
+
+export interface TVShowDetails extends TVShow {
+  status: string;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  production_companies: Array<{
+    id: number;
+    name: string;
+    origin_country: string;
+  }>;
 }
 
 export interface MoviesResponse {
@@ -35,59 +63,83 @@ export interface MoviesResponse {
   total_results: number;
 }
 
-export const tmdbService = {
-  getPopularMovies: async (page: number = 1): Promise<MoviesResponse> => {
+export interface TVShowsResponse {
+  page: number;
+  results: TVShow[];
+  total_pages: number;
+  total_results: number;
+}
+
+class TMDBService {
+  private readonly apiKey: string;
+  private readonly baseUrl: string = 'https://api.themoviedb.org/3';
+  private readonly imageBaseUrl: string = 'https://image.tmdb.org/t/p';
+
+  constructor() {
+    const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+    if (!apiKey) {
+      throw new Error('TMDB API key is not configured');
+    }
+    this.apiKey = apiKey;
+  }
+
+  async getPopularMovies(page: number = 1): Promise<MoviesResponse> {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
+      `${this.baseUrl}/movie/popular?api_key=${this.apiKey}&page=${page}`
     );
-    
     if (!response.ok) {
-      throw new Error('Failed to fetch movies');
+      throw new Error('Failed to fetch popular movies');
     }
-
     return response.json();
-  },
+  }
 
-  searchMovies: async (query: string, page: number = 1): Promise<MoviesResponse> => {
-    if (!query.trim()) {
-      return {
-        page: 1,
-        results: [],
-        total_pages: 0,
-        total_results: 0
-      };
-    }
-
+  async searchMovies(query: string, page: number = 1): Promise<MoviesResponse> {
     const response = await fetch(
-      `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&language=en-US`
+      `${this.baseUrl}/search/movie?api_key=${this.apiKey}&query=${encodeURIComponent(query)}&page=${page}`
     );
-    
     if (!response.ok) {
       throw new Error('Failed to search movies');
     }
-
     return response.json();
-  },
+  }
 
-  getMovieDetails: async (movieId: number): Promise<MovieDetails> => {
+  async getMovieDetails(movieId: number): Promise<MovieDetails> {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits,videos,similar`
+      `${this.baseUrl}/movie/${movieId}?api_key=${this.apiKey}`
     );
-    
     if (!response.ok) {
       throw new Error('Failed to fetch movie details');
     }
-
     return response.json();
-  },
+  }
 
-  getMoviePosterUrl: (path: string | null, size: 'w92' | 'w500' | 'original' = 'w500'): string => {
-    if (!path) return '/placeholder-poster.svg';
-    return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
-  },
+  async getPopularTVShows(page: number = 1): Promise<TVShowsResponse> {
+    const response = await fetch(
+      `${this.baseUrl}/tv/popular?api_key=${this.apiKey}&page=${page}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to fetch popular TV shows');
+    }
+    return response.json();
+  }
 
-  getMovieBackdropUrl: (path: string | null, size: 'w1280' | 'original' = 'w1280'): string => {
-    if (!path) return '/placeholder-backdrop.svg';
-    return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
-  },
-}; 
+  async getTVShowDetails(showId: number): Promise<TVShowDetails> {
+    const response = await fetch(
+      `${this.baseUrl}/tv/${showId}?api_key=${this.apiKey}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to fetch TV show details');
+    }
+    return response.json();
+  }
+
+  getMoviePosterUrl(path: string, size: 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original' = 'w500'): string {
+    return `${this.imageBaseUrl}/${size}${path}`;
+  }
+
+  getMovieBackdropUrl(path: string, size: 'w300' | 'w780' | 'w1280' | 'original' = 'w1280'): string {
+    return `${this.imageBaseUrl}/${size}${path}`;
+  }
+}
+
+export const tmdbService = new TMDBService(); 

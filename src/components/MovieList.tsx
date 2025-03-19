@@ -83,8 +83,8 @@ export default function MovieList({ initialMovies }: MovieListProps) {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+        {movies.map((movie, index) => (
+          <MovieCard key={`${movie.id}-${index}`} movie={movie} />
         ))}
       </div>
 

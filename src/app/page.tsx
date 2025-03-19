@@ -9,17 +9,17 @@ export async function generateMetadata() {
   };
 }
 
-// This function runs at build time on the server or during revalidation
-export async function fetchPopularMovies() {
-  try {
-    return await tmdbService.getPopularMovies(1);
-  } catch (error) {
-    console.error('Error fetching popular movies:', error);
-    return { page: 1, results: [], total_pages: 0, total_results: 0 };
-  }
-}
-
 export default async function Home() {
+  // Helper function to fetch movies (not exported)
+  async function fetchPopularMovies() {
+    try {
+      return await tmdbService.getPopularMovies(1);
+    } catch (error) {
+      console.error('Error fetching popular movies:', error);
+      return { page: 1, results: [], total_pages: 0, total_results: 0 };
+    }
+  }
+
   // Fetch initial popular movies at build time
   const initialData = await fetchPopularMovies();
 

@@ -1,34 +1,24 @@
 'use client';
 
 import Image from 'next/image';
-import { MovieDetails } from '@/services/tmdb';
+import { TVShowDetails } from '@/services/tmdb';
 import { tmdbService } from '@/services/tmdb';
 import { useState } from 'react';
-import { useFavorites } from '@/contexts/FavoritesContext';
 
-interface MovieDetailClientProps {
-  movie: MovieDetails;
+interface TVShowDetailClientProps {
+  show: TVShowDetails;
 }
 
-export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
+export default function TVShowDetailClient({ show }: TVShowDetailClientProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const { isFavorite, addToFavorites, removeFromFavorites } = useFavorites();
-
-  const handleFavoriteClick = () => {
-    if (isFavorite(movie.id)) {
-      removeFromFavorites(movie.id);
-    } else {
-      addToFavorites(movie);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Background Image */}
+      {/* Backdrop Image */}
       <div className="relative h-[60vh] w-full">
         <Image
-          src={tmdbService.getMovieBackdropUrl(movie.backdrop_path)}
-          alt={movie.title}
+          src={tmdbService.getMovieBackdropUrl(show.backdrop_path)}
+          alt={show.name}
           fill
           className="object-cover"
           priority
@@ -44,8 +34,8 @@ export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
           <div className="md:col-span-1">
             <div className="relative aspect-[2/3] w-full">
               <Image
-                src={tmdbService.getMoviePosterUrl(movie.poster_path)}
-                alt={movie.title}
+                src={tmdbService.getMoviePosterUrl(show.poster_path)}
+                alt={show.name}
                 fill
                 className="rounded-lg object-cover"
               />
@@ -54,39 +44,39 @@ export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
 
           {/* Details */}
           <div className="md:col-span-2">
-            <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
+            <h1 className="text-4xl font-bold mb-4">{show.name}</h1>
             
             <div className="flex items-center gap-4 mb-4">
               <span className="text-gray-300">
-                {new Date(movie.release_date).getFullYear()}
+                {new Date(show.first_air_date).getFullYear()}
               </span>
               <span className="text-gray-300">•</span>
               <span className="text-gray-300">
-                {movie.runtime} minutes
+                {show.number_of_seasons} Season{show.number_of_seasons !== 1 ? 's' : ''}
               </span>
               <span className="text-gray-300">•</span>
               <span className="text-gray-300">
-                {movie.status}
+                {show.number_of_episodes} Episode{show.number_of_episodes !== 1 ? 's' : ''}
               </span>
             </div>
 
             <div className="flex items-center gap-2 mb-4">
               <span className="text-yellow-400">★</span>
-              <span>{movie.vote_average.toFixed(1)}</span>
+              <span>{show.vote_average.toFixed(1)}</span>
               <span className="text-gray-400">
-                ({movie.vote_count.toLocaleString()} votes)
+                ({show.vote_count.toLocaleString()} votes)
               </span>
             </div>
 
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Overview</h2>
-              <p className="text-gray-300">{movie.overview}</p>
+              <p className="text-gray-300">{show.overview}</p>
             </div>
 
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-2">Genres</h2>
               <div className="flex flex-wrap gap-2">
-                {movie.genres.map((genre) => (
+                {show.genres.map((genre) => (
                   <span
                     key={genre.id}
                     className="px-3 py-1 bg-gray-800 rounded-full text-sm"
@@ -97,10 +87,10 @@ export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
               </div>
             </div>
 
-            <div className="mb-6">
+            <div>
               <h2 className="text-xl font-semibold mb-2">Production Companies</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {movie.production_companies.map((company) => (
+                {show.production_companies.map((company) => (
                   <div
                     key={company.id}
                     className="bg-gray-800 p-4 rounded-lg"
@@ -111,17 +101,6 @@ export default function MovieDetailClient({ movie }: MovieDetailClientProps) {
                 ))}
               </div>
             </div>
-
-            <button
-              onClick={handleFavoriteClick}
-              className={`px-6 py-3 rounded-full font-semibold transition-colors ${
-                isFavorite(movie.id)
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-yellow-400 text-black hover:bg-yellow-500'
-              }`}
-            >
-              {isFavorite(movie.id) ? 'Remove from Favorites' : 'Add to Favorites'}
-            </button>
           </div>
         </div>
       </div>

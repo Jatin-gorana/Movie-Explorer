@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Movie Explorer",
-  description: "Explore and discover movies from TMDB",
+  description: "Discover and explore your favorite movies and TV shows.",
 };
 
 export default function RootLayout({
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          {children}
-        </Providers>
+        <FavoritesProvider>
+          <Providers>
+            {children}
+          </Providers>
+        </FavoritesProvider>
       </body>
     </html>
   );
