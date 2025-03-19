@@ -3,15 +3,19 @@ import MoviePageWrapper from '@/components/MoviePageWrapper';
 import { tmdbService } from '@/services/tmdb';
 
 interface MoviePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: MoviePageProps) {
   try {
-    const movieId = parseInt(params.id);
+    // Properly await the params object
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+    
+    const movieId = parseInt(id);
     if (isNaN(movieId) || movieId <= 0) {
       return {
         title: 'Movie Not Found',
@@ -49,7 +53,11 @@ async function getMovieData(id: string) {
 }
 
 export default async function MovieDetailPage({ params }: MoviePageProps) {
-  const movie = await getMovieData(params.id);
+  // Properly await the params object
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
+  
+  const movie = await getMovieData(id);
 
   if (!movie) {
     notFound();

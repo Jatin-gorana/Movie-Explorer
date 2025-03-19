@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable ESLint during builds to avoid build failures
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  
+  // Configure image domains for the TMDB API
   images: {
     domains: ['image.tmdb.org'],
     remotePatterns: [
@@ -14,6 +15,12 @@ const nextConfig = {
         pathname: '/t/p/**',
       },
     ],
+  },
+  
+  // Experimental features
+  experimental: {
+    // Enable server actions (if needed)
+    serverActions: true,
   },
 };
 

@@ -3,43 +3,21 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 
-// In a real app, this would be a database
-// For now, we'll use localStorage simulation in Next.js server
-const userStore = global as unknown as {
-  users?: Array<{
-    id: string;
-    name: string;
-    email: string;
-    password: string;
-  }>;
-};
+// In-memory user database for demo purposes only
+// In a real app, this would be a proper database
+// WARNING: This gets reset when the server restarts
+const users = [
+  {
+    id: "1",
+    name: "Demo User",
+    email: "user@example.com",
+    // Password: "password"
+    password: "$2a$10$ICRpI./uJDlJuxA5s9rY6.RJhfS8Ffk.L3A0OvTxSao/d3tzS6w8G",
+  },
+];
 
-// Initialize the user store if it doesn't exist
-if (!userStore.users) {
-  userStore.users = [
-    {
-      id: "1",
-      name: "Demo User",
-      email: "user@example.com",
-      // Password: "password"
-      password: "$2a$10$ICRpI./uJDlJuxA5s9rY6.RJhfS8Ffk.L3A0OvTxSao/d3tzS6w8G",
-    },
-  ];
-  console.log("Initialized user store with demo user");
-}
-
-// Export users for access from the register route
-export const getUsers = () => userStore.users || [];
-export const addUser = (user: { id: string; name: string; email: string; password: string }) => {
-  if (!userStore.users) {
-    userStore.users = [];
-  }
-  userStore.users.push(user);
-  console.log(`Added new user: ${user.email} (${user.id})`);
-  console.log(`Current users: ${JSON.stringify(userStore.users.map(u => ({ id: u.id, email: u.email })))}`);
-};
-
-export const authOptions: NextAuthOptions = {
+// NextAuth configuration options
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -54,9 +32,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         console.log(`Trying to authenticate: ${credentials.email}`);
-        console.log(`Available users: ${JSON.stringify(getUsers().map(u => ({ id: u.id, email: u.email })))}`);
-
-        const user = getUsers().find((user) => user.email === credentials.email);
+        
+        const user = users.find(user => user.email === credentials.email);
         if (!user) {
           console.log(`User not found: ${credentials.email}`);
           return null;
@@ -104,11 +81,14 @@ export const authOptions: NextAuthOptions = {
     signOut: "/auth/logout",
     error: "/auth/error",
   },
-  debug: true, // Enable debug mode
+  debug: process.env.NODE_ENV === "development",
 };
 
-// Create a NextAuth handler with the authOptions
+// Create the NextAuth handler
 const handler = NextAuth(authOptions);
 
 // Export the handler for all HTTP methods
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };
+
+// For accessing in a non-route file (but not exported from the route itself)
+export const getAuthUsers = () => users; 

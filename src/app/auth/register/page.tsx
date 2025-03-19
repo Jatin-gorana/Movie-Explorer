@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/';
+  
+  const { register, status } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -16,6 +19,13 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push(returnUrl);
+    }
+  }, [status, router, returnUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,7 +72,7 @@ export default function RegisterPage() {
     try {
       const result = await register(formData.name, formData.email, formData.password);
       if (result.success) {
-        router.push('/');
+        router.push(returnUrl);
       } else {
         setError(result.error || 'Registration failed');
       }
@@ -86,6 +96,11 @@ export default function RegisterPage() {
           <h2 className="mt-6 text-center text-2xl font-bold text-gray-900 dark:text-white">
             Create your account
           </h2>
+          {returnUrl !== '/' && (
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              You need to create an account to view this content
+            </p>
+          )}
         </div>
 
         {error && (
@@ -184,7 +199,10 @@ export default function RegisterPage() {
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{' '}
-              <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+              <Link 
+                href={`/auth/login${returnUrl !== '/' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
                 Sign in
               </Link>
             </p>

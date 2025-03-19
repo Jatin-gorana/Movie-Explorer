@@ -11,11 +11,22 @@ interface FavoritesContextType {
   isFavorite: (movieId: number) => boolean;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
+const FavoritesContext = createContext<FavoritesContextType>({
+  favorites: [],
+  addFavorite: () => {},
+  removeFavorite: () => {},
+  isFavorite: () => false,
+});
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Movie[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   const { user, status } = useAuth();
+  
+  // Mark component as mounted to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // Get the user-specific storage key
   const getFavoritesKey = () => {
@@ -24,6 +35,9 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   // Load favorites from localStorage when user changes
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined' || !isMounted) return;
+    
     // Only load favorites if a user is authenticated
     if (status === 'authenticated' && user?.id) {
       const storageKey = getFavoritesKey();
@@ -46,19 +60,21 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // Clear favorites when user is not authenticated
       setFavorites([]);
     }
-  }, [user, status, getFavoritesKey]);
+  }, [user, status, isMounted]);
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
+    if (typeof window === 'undefined' || !isMounted) return;
+    
     const storageKey = getFavoritesKey();
     if (storageKey && status === 'authenticated') {
       localStorage.setItem(storageKey, JSON.stringify(favorites));
     }
-  }, [favorites, user, status, getFavoritesKey]);
+  }, [favorites, user, status, isMounted]);
 
   const addFavorite = (movie: Movie) => {
-    // Only add favorites if user is authenticated
-    if (status !== 'authenticated') return;
+    // Only add favorites if user is authenticated and component is mounted
+    if (status !== 'authenticated' || !isMounted) return;
     
     setFavorites((prevFavorites) => {
       if (!prevFavorites.some((fav) => fav.id === movie.id)) {
@@ -69,8 +85,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFavorite = (movieId: number) => {
-    // Only remove favorites if user is authenticated
-    if (status !== 'authenticated') return;
+    // Only remove favorites if user is authenticated and component is mounted
+    if (status !== 'authenticated' || !isMounted) return;
     
     setFavorites((prevFavorites) => 
       prevFavorites.filter((movie) => movie.id !== movieId)
@@ -79,7 +95,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   const isFavorite = (movieId: number) => {
     // Check if user is authenticated, if not return false
-    if (status !== 'authenticated') return false;
+    if (status !== 'authenticated' || !isMounted) return false;
     
     return favorites.some((movie) => movie.id === movieId);
   };
@@ -93,8 +109,5 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
 export function useFavorites() {
   const context = useContext(FavoritesContext);
-  if (context === undefined) {
-    throw new Error('useFavorites must be used within a FavoritesProvider');
-  }
   return context;
 } 

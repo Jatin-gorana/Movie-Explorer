@@ -1,9 +1,8 @@
 'use client';
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,8 +11,17 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { status } = useAuth();
   const router = useRouter();
+  const [mounting, setMounting] = useState(true);
+
+  // Make sure we don't redirect during SSR or hydration
+  useEffect(() => {
+    setMounting(false);
+  }, []);
 
   useEffect(() => {
+    // Don't do anything during initialization
+    if (mounting) return;
+    
     // If authentication is still being checked, do nothing
     if (status === 'loading') return;
 
@@ -21,10 +29,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     }
-  }, [status, router]);
+  }, [status, router, mounting]);
 
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (mounting || status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
         <div className="text-center">

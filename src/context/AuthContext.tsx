@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -19,13 +19,29 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  status: 'loading',
+  login: async () => ({ success: false, error: 'Auth context not initialized' }),
+  register: async () => ({ success: false, error: 'Auth context not initialized' }),
+  logout: async () => {},
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Mark component as mounted to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const login = async (email: string, password: string) => {
+    if (!isMounted) return { success: false, error: 'Component not mounted' };
+    
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -45,6 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (name: string, email: string, password: string) => {
+    if (!isMounted) return { success: false, error: 'Component not mounted' };
+    
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -70,6 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    if (!isMounted) return;
+    
     await signOut({ redirect: false });
     router.push('/');
   };
@@ -91,8 +111,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
   return context;
 } 

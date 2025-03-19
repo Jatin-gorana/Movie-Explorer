@@ -1,61 +1,34 @@
-import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getUsers, addUser } from "../[...nextauth]/route";
+import { registerUser } from "@/lib/auth-utils";
 
-// In production, use a proper database instead of an in-memory store!
-
+// API route handler for user registration
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, email, password } = body;
     
-    console.log(`Registration attempt for: ${email}`);
-    
     // Validate input
     if (!name || !email || !password) {
-      console.log("Registration failed: Missing required fields");
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
     
-    // Check if user already exists
-    const users = getUsers();
-    console.log(`Current users before registration: ${JSON.stringify(users.map(u => ({ id: u.id, email: u.email })))}`);
+    // Register the new user
+    const result = await registerUser(name, email, password);
     
-    if (users.some(user => user.email === email)) {
-      console.log(`Registration failed: User already exists - ${email}`);
+    if (!result.success) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: result.error },
         { status: 409 }
       );
     }
 
-    // Hash password
-    const hashedPassword = await hash(password, 10);
-
-    // Create new user
-    const id = String(users.length + 1);
-    const newUser = {
-      id,
-      name,
-      email,
-      password: hashedPassword,
-    };
-    
-    // Add to "database"
-    addUser(newUser);
-    console.log(`User registered successfully: ${email} (${id})`);
-
-    // Return success response without including password
+    // Return success response
     return NextResponse.json({
       success: true,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-      },
+      user: result.user
     });
   } catch (error) {
     console.error("Registration error:", error);
