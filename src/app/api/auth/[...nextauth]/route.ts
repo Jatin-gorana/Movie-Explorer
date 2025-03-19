@@ -6,6 +6,7 @@ import { compare } from "bcryptjs";
 // In-memory user database for demo purposes only
 // In a real app, this would be a proper database
 // WARNING: This gets reset when the server restarts
+// Making this available to other files through direct reference, not export
 const users = [
   {
     id: "1",
@@ -15,6 +16,14 @@ const users = [
     password: "$2a$10$ICRpI./uJDlJuxA5s9rY6.RJhfS8Ffk.L3A0OvTxSao/d3tzS6w8G",
   },
 ];
+
+// For accessing in a non-route file without exporting from the route
+// This is also available from outside this file through imports
+// This is not exported directly from the route
+import { authUsersStore } from '@/lib/auth-store';
+
+// Initialize auth store with users
+authUsersStore.setUsers(users);
 
 // NextAuth configuration options
 const authOptions: NextAuthOptions = {
@@ -88,7 +97,4 @@ const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions);
 
 // Export the handler for all HTTP methods
-export { handler as GET, handler as POST };
-
-// For accessing in a non-route file (but not exported from the route itself)
-export const getAuthUsers = () => users; 
+export { handler as GET, handler as POST }; 

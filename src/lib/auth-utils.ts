@@ -1,15 +1,15 @@
-import { getAuthUsers } from '@/app/api/auth/[...nextauth]/route';
 import { hash } from 'bcryptjs';
+import { authUsersStore } from './auth-store';
 
 // Access the users array from the NextAuth route
 // Note: This is for demo purposes only, in a real app you would use a proper database
 export function getUsersArray() {
-  return getAuthUsers();
+  return authUsersStore.getUsers();
 }
 
 // Check if a user exists by email
 export function userExists(email: string) {
-  return getUsersArray().some(user => user.email === email);
+  return authUsersStore.userExists(email);
 }
 
 // Register a new user
@@ -22,7 +22,7 @@ export async function registerUser(name: string, email: string, password: string
   const hashedPassword = await hash(password, 10);
 
   // Create new user
-  const id = String(getUsersArray().length + 1);
+  const id = String(authUsersStore.getUsers().length + 1);
   const newUser = {
     id,
     name,
@@ -31,7 +31,7 @@ export async function registerUser(name: string, email: string, password: string
   };
   
   // Add to users array
-  getUsersArray().push(newUser);
+  authUsersStore.addUser(newUser);
   
   return { 
     success: true,
